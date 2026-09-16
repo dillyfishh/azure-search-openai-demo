@@ -6,6 +6,8 @@ import { useLogin } from "../../authConfig";
 
 import { LoginButton } from "../../components/LoginButton";
 
+import { NotificationBanners } from "../../components/NotificationBanners";
+
 const Layout = () => {
     const { t } = useTranslation();
 
@@ -19,6 +21,8 @@ const Layout = () => {
                     <div className={styles.loginMenuContainer}>{useLogin && <LoginButton />}</div>
                 </div>
             </header>
+
+            <NotificationBanners />
 
             <main className={styles.main} id="main-content">
                 <Outlet />

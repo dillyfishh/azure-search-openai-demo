@@ -158,5 +158,13 @@
     },
     "overallSettings": "全体設定",
     "searchSettings": "検索設定",
-    "llmSettings": "LLM設定"
+    "llmSettings": "LLM設定",
+    "notifications": {
+        "region": "サービス通知",
+        "info": "情報",
+        "success": "成功",
+        "warning": "警告",
+        "error": "エラー",
+        "dismiss": "通知を閉じる: {{title}}"
+    }
 }

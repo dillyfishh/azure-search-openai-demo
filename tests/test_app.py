@@ -877,3 +877,65 @@ async def test_format_as_ndjson():
 
     result = [line async for line in app.format_as_ndjson(gen())]
     assert result == ['{"a": "I ❤️ 🐍"}\n', '{"b": "Newlines inside \\n strings are fine"}\n']
+
+
+@pytest.mark.asyncio
+async def test_notifications_disabled(client):
+    response = await client.get("/notifications")
+    assert response.status_code == 200
+    assert response.headers["Cache-Control"] == "no-store"
+    assert (await response.get_json())["notifications"] == []
+
+
+@pytest.mark.asyncio
+async def test_notifications_projects_active_content_only(client):
+    from notifications.models import NotificationDocument
+    from notifications.service import NotificationService, NotificationSettings
+
+    service = NotificationService(NotificationSettings())
+    service.document = NotificationDocument.model_validate_json(
+        json.dumps(
+            {
+                "schemaVersion": 1,
+                "notifications": [
+                    {"type": "error", "message": "An outage with [details](https://example.com)", "priority": 100},
+                    {"message": "Private draft", "enabled": False},
+                    {
+                        "message": "Future plans",
+                        "schedule": {
+                            "startDate": "2090-01-01",
+                            "endDate": "2091-01-01",
+                            "startTime": "00:00:00",
+                            "endTime": "00:00:00",
+                        },
+                    },
+                ],
+            }
+        )
+    )
+    client.app.config["notifications"] = service
+    response = await client.get("/notifications")
+    result = await response.get_json()
+    assert [banner["message"] for banner in result["notifications"]] == [
+        "An outage with [details](https://example.com)"
+    ]
+    assert not {"id", "revision", "action", "schemaVersion", "priority", "schedule", "enabled"}.intersection(
+        result["notifications"][0]
+    )
+    assert "Private draft" not in await response.get_data(as_text=True)
+    assert "Future plans" not in await response.get_data(as_text=True)
+
+
+@pytest.mark.asyncio
+async def test_notifications_storage_failure_does_not_break_api(client):
+    from azure.core.exceptions import ServiceRequestError
+
+    from notifications.service import NotificationService, NotificationSettings
+
+    blob = mock.AsyncMock()
+    blob.get_blob_properties.side_effect = ServiceRequestError("offline")
+    client.app.config["notifications"] = NotificationService(NotificationSettings(enabled=True), blob)
+    response = await client.get("/notifications")
+    assert response.status_code == 200
+    assert (await response.get_json())["notifications"] == []
+    assert (await client.get("/config")).status_code == 200

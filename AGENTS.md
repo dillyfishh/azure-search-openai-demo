@@ -399,3 +399,14 @@ azd deploy document-extractor
 azd deploy figure-processor
 azd deploy text-processor
 ```
+
+## Storage-backed notification banners
+
+* `app/backend/notifications/` owns the strict authoring models, Azure Blob cache, schedule evaluation, and CLI validator.
+* `GET /notifications` emits only active presentation data; never return authoring models or serve the source blob through `/content`.
+* Keep the source in a dedicated private container outside document ingestion. Configuration is through `NOTIFICATIONS_*` environment variables; update both deployment pipelines and Bicep mappings when adding settings.
+* `app/frontend/src/components/NotificationBanners/` exports a connected component and a reusable presentation component; the shared layout mounts the connected component once.
+* `docs/notifications/README.md` documents authoring, timezone/DST rules, operation, and reuse. Regenerate `docs/notifications/notifications.schema.json` with `PYTHONPATH=app/backend python -m notifications.validate docs/notifications/notifications.schema.json --write-schema` after model changes.
+* Scheduling/storage unit tests live in `tests/test_notifications.py`; route tests are in `tests/test_app.py`, and browser tests are in `tests/e2e.py -k notification`.
+
+* Notification authors use one optional `schedule` with `startDate`, `startTime`, `endDate`, `endTime`, and optional IANA `timezone` (default `Australia/Sydney`). It is one continuous interval. Messages support safe Markdown up to 40,000 characters; do not enable raw HTML. Authors supply no IDs, revisions, or actions; dismissal keys are derived by the backend.

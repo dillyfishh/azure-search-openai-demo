@@ -32,3 +32,5 @@ msgraph-sdk
 jinja2
 rich
 typing-extensions
+pydantic>=2.13.4,<3
+tzdata

@@ -65,6 +65,7 @@ from config import (
     CONFIG_KNOWLEDGEBASE_CLIENT_WITH_WEB_AND_SHAREPOINT,
     CONFIG_LANGUAGE_PICKER_ENABLED,
     CONFIG_MULTIMODAL_ENABLED,
+    CONFIG_NOTIFICATIONS,
     CONFIG_OPENAI_CLIENT,
     CONFIG_QUERY_REWRITING_ENABLED,
     CONFIG_RAG_SEARCH_IMAGE_EMBEDDINGS,
@@ -93,6 +94,7 @@ from core.authentication import AuthenticationHelper
 from core.sessionhelper import create_session_id
 from decorators import authenticated, authenticated_path
 from error import error_dict, error_response
+from notifications.service import NotificationService, NotificationSettings
 from prepdocs import (
     OpenAIHost,
     setup_embeddings_service,
@@ -275,6 +277,17 @@ async def chat_stream(auth_claims: dict[str, Any]):
 def auth_setup():
     auth_helper = current_app.config[CONFIG_AUTH_CLIENT]
     return jsonify(auth_helper.get_auth_setup_for_client())
+
+
+@bp.route("/notifications", methods=["GET"])
+async def notifications():
+    # Service notices are public, like /config. Hosting-level Easy Auth still applies.
+    # Never expose the source file, disabled entries, or future schedules.
+    service: NotificationService = current_app.config[CONFIG_NOTIFICATIONS]
+    response = jsonify(await service.get_payload())
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    return response
 
 
 @bp.route("/config", methods=["GET"])
@@ -512,6 +525,9 @@ async def setup_clients():
 
     # Set the Azure credential in the app config for use in other parts of the app
     current_app.config[CONFIG_CREDENTIAL] = azure_credential
+    current_app.config[CONFIG_NOTIFICATIONS] = NotificationService.create(
+        NotificationSettings.from_env(), azure_credential
+    )
 
     # Set up clients for AI Search and Storage
     search_client = SearchClient(
@@ -751,6 +767,7 @@ async def close_clients():
     await current_app.config[CONFIG_GLOBAL_BLOB_MANAGER].close_clients()
     if user_blob_manager := current_app.config.get(CONFIG_USER_BLOB_MANAGER):
         await user_blob_manager.close_clients()
+    await current_app.config[CONFIG_NOTIFICATIONS].close()
     await current_app.config[CONFIG_CREDENTIAL].close()
 
 
