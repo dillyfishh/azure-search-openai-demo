@@ -66,66 +66,23 @@ export function NotificationBannerList({
     );
 }
 
-/** Mount anywhere in the app. Source settings and refresh cadence come from the backend. */
+/** Mount anywhere in the app. Notifications are loaded once when this component mounts. */
 export function NotificationBanners({ className }: { className?: string }) {
     const [notifications, setNotifications] = useState<NotificationBanner[]>([]);
     const [dismissals, setDismissals] = useState(loadDismissals);
 
     useEffect(() => {
-        let disposed = false;
-        let pollTimer: ReturnType<typeof setTimeout>;
-        let expiryTimer: ReturnType<typeof setTimeout>;
-        let controller: AbortController;
-        let retryMs = 60000;
-        let generation = 0;
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
 
-        const refresh = async () => {
-            const requestGeneration = ++generation;
-            clearTimeout(pollTimer);
-            controller?.abort();
-            const requestController = new AbortController();
-            controller = requestController;
-            const started = performance.now();
-            // Keep a hung request from preventing all future refreshes.
-            const timeout = setTimeout(() => requestController.abort(), 10000);
-            try {
-                const payload = await notificationsApi(requestController.signal);
-                if (disposed || requestGeneration !== generation) return;
-                const elapsed = performance.now() - started;
-                const remaining = Math.max(0, payload.validForMs - elapsed);
-                retryMs = Math.max(1000, payload.refreshAfterMs);
-                setNotifications(remaining > 0 ? payload.notifications : []);
-                clearTimeout(expiryTimer);
-                expiryTimer = setTimeout(() => setNotifications([]), remaining);
-                pollTimer = setTimeout(refresh, Math.max(50, payload.refreshAfterMs - elapsed));
-            } catch {
-                if (disposed || requestGeneration !== generation) return;
-                clearTimeout(expiryTimer);
-                setNotifications([]);
-                pollTimer = setTimeout(refresh, retryMs);
-            } finally {
-                clearTimeout(timeout);
-            }
-        };
-        const resume = () => {
-            if (document.visibilityState === "visible") {
-                // Timers may have been suspended; do not redisplay an old snapshot.
-                clearTimeout(expiryTimer);
-                setNotifications([]);
-                void refresh();
-            }
-        };
-        void refresh();
-        document.addEventListener("visibilitychange", resume);
-        window.addEventListener("online", resume);
+        void notificationsApi(controller.signal)
+            .then(payload => setNotifications(payload.notifications))
+            .catch(() => setNotifications([]))
+            .finally(() => clearTimeout(timeout));
+
         return () => {
-            disposed = true;
-            generation++;
-            controller?.abort();
-            clearTimeout(pollTimer);
-            clearTimeout(expiryTimer);
-            document.removeEventListener("visibilitychange", resume);
-            window.removeEventListener("online", resume);
+            controller.abort();
+            clearTimeout(timeout);
         };
     }, []);
 
