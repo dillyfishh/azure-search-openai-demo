@@ -158,5 +158,13 @@
     },
     "overallSettings": "Impostazioni generali",
     "searchSettings": "Impostazioni di ricerca",
-    "llmSettings": "Impostazioni LLM"
+    "llmSettings": "Impostazioni LLM",
+    "notifications": {
+        "region": "Notifiche del servizio",
+        "info": "Informazione",
+        "success": "Operazione riuscita",
+        "warning": "Avviso",
+        "error": "Errore",
+        "dismiss": "Chiudi notifica: {{title}}"
+    }
 }

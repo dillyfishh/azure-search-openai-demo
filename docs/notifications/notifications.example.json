@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "notifications": [
+    {
+      "type": "warning",
+      "title": "Scheduled maintenance",
+      "message": "Search may be unavailable while we upgrade the service.\n\nSee more information here: [More Information](https://moreinformation.com)",
+      "dismissible": true,
+      "schedule": {
+        "startDate": "2030-09-20",
+        "startTime": "06:00",
+        "endDate": "2030-09-22",
+        "endTime": "22:00"
+      }
+    },
+    {
+      "enabled": false,
+      "type": "success",
+      "message": "All services are operating normally.",
+      "dismissible": true
+    }
+  ]
+}

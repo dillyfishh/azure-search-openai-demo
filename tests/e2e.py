@@ -819,3 +819,144 @@ def test_agentic_retrieval_query_plan(page: Page, live_server_url: str):
     expect(page.get_by_text("Index search")).to_be_visible()
     expect(page.get_by_text("Search: whistleblower query")).to_be_visible()
     expect(page.get_by_text("Source: index")).to_be_visible()
+
+
+def test_notification_banners(sized_page: Page, live_server_url: str):
+    page = sized_page
+    updated = False
+
+    def handle(route: Route):
+        route.fulfill(
+            json={
+                "notifications": [
+                    {
+                        "key": "outage",
+                        "type": "error",
+                        "title": "Search outage",
+                        "message": "We are investigating.",
+                        "dismissible": False,
+                    },
+                    {
+                        "key": "maintenance-updated" if updated else "maintenance",
+                        "type": "warning",
+                        "title": "Maintenance",
+                        "message": ("Updated: " if updated else "")
+                        + "See **maintenance** details [Service status](https://status.example.com/) and [Help](/help).\n\n<script>window.bannerInjected = true</script>",
+                        "dismissible": True,
+                    },
+                ],
+                "refreshAfterMs": 60000,
+                "validForMs": 120000,
+            }
+        )
+
+    page.route("**/notifications", handle)
+    page.goto(live_server_url)
+    region = page.get_by_role("region", name="Service notifications")
+    expect(region.get_by_role("alert")).to_contain_text("Search outage")
+    expect(region.get_by_role("status")).to_contain_text("maintenance")
+    expect(region.locator("script")).to_have_count(0)
+    expect(region.get_by_role("status").locator("strong")).to_contain_text(["Maintenance", "maintenance"])
+    expect(region.get_by_role("link", name="Help")).to_have_attribute("href", "/help")
+    assert page.evaluate("window.bannerInjected") is None
+    expect(region.get_by_role("link", name="Service status")).to_have_attribute("href", "https://status.example.com/")
+    assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
+    page.get_by_role("button", name="Dismiss notification: Maintenance").click()
+    expect(region.get_by_role("status")).to_have_count(0)
+    page.reload()
+    expect(region.get_by_role("alert")).to_be_visible()
+    expect(region.get_by_role("status")).to_have_count(0)
+    updated = True
+    page.reload()
+    expect(region.get_by_role("status")).to_be_visible()
+    results = Axe().run(page, context={"include": [["section[aria-label='Service notifications']"]]})
+    assert results.violations_count == 0, results.generate_report()
+
+
+def test_notifications_expire_without_successful_refresh(page: Page, live_server_url: str):
+    requests_seen = 0
+
+    def handle(route: Route):
+        nonlocal requests_seen
+        requests_seen += 1
+        if requests_seen > 1:
+            route.fulfill(status=503, body="Unavailable")
+            return
+        route.fulfill(
+            json={
+                "notifications": [
+                    {
+                        "key": "short",
+                        "type": "info",
+                        "title": None,
+                        "message": "Temporary notice",
+                        "dismissible": False,
+                    }
+                ],
+                "refreshAfterMs": 3000,
+                "validForMs": 1500,
+            }
+        )
+
+    page.route("**/notifications", handle)
+    page.goto(live_server_url)
+    expect(page.get_by_text("Temporary notice")).to_be_visible()
+    expect(page.get_by_text("Temporary notice")).to_have_count(0)
+    expect(page.get_by_role("heading", name="Chat with your data")).to_be_visible()
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"unexpected": "gateway response"},
+        {
+            "notifications": [
+                {
+                    "key": "bad",
+                    "type": "info",
+                    "title": None,
+                    "message": 123,
+                    "dismissible": False,
+                }
+            ],
+            "refreshAfterMs": 60000,
+            "validForMs": 120000,
+        },
+    ],
+)
+def test_notifications_invalid_api_response(page: Page, live_server_url: str, payload):
+    page.route("**/notifications", lambda route: route.fulfill(json=payload))
+    page.goto(live_server_url)
+    expect(page.get_by_role("heading", name="Chat with your data")).to_be_visible()
+    expect(page.get_by_role("region", name="Service notifications")).to_have_count(0)
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
+        "Safe text [Unsafe](javascript:alert%281%29)",
+        "Safe text [Unsafe](data:text/html,payload)",
+        "Safe text [Unsafe](//evil.example)",
+        '<a href="javascript:alert(1)">Unsafe</a> Safe text',
+        '<img src=x onerror="window.bannerInjected=true"> Safe text',
+        "![Image](https://evil.example/tracker.png) Safe text",
+    ],
+)
+def test_notification_markdown_rejects_unsafe_content(page: Page, live_server_url: str, message):
+    page.route(
+        "**/notifications",
+        lambda route: route.fulfill(
+            json={
+                "notifications": [
+                    {"key": "safe", "type": "info", "title": "Safety", "message": message, "dismissible": False}
+                ],
+                "refreshAfterMs": 60000,
+                "validForMs": 120000,
+            }
+        ),
+    )
+    page.goto(live_server_url)
+    region = page.get_by_role("region", name="Service notifications")
+    expect(region).to_contain_text("Safe text")
+    expect(region.locator("a, img, script")).to_have_count(0)
+    assert page.evaluate("window.bannerInjected") is None

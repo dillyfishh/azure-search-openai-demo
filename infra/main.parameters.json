@@ -376,6 +376,27 @@
     },
     "useSharePointSource": {
       "value": "${USE_SHAREPOINT_SOURCE=false}"
+    },
+    "notificationsEnabled": {
+      "value": "${NOTIFICATIONS_ENABLED=false}"
+    },
+    "notificationsStorageAccountUrl": {
+      "value": "${NOTIFICATIONS_STORAGE_ACCOUNT_URL}"
+    },
+    "notificationsStorageContainer": {
+      "value": "${NOTIFICATIONS_STORAGE_CONTAINER=notifications}"
+    },
+    "notificationsStorageBlob": {
+      "value": "${NOTIFICATIONS_STORAGE_BLOB=notifications.json}"
+    },
+    "notificationsCacheSeconds": {
+      "value": "${NOTIFICATIONS_CACHE_SECONDS=30}"
+    },
+    "notificationsPollSeconds": {
+      "value": "${NOTIFICATIONS_POLL_SECONDS=60}"
+    },
+    "notificationsTimeoutSeconds": {
+      "value": "${NOTIFICATIONS_TIMEOUT_SECONDS=3}"
     }
   }
 }

@@ -1,0 +1,99 @@
+.banners {
+    flex-shrink: 0;
+    max-height: 35vh;
+    overflow-y: auto;
+}
+
+.banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem 1.5rem;
+    border-bottom: 1px solid currentColor;
+    border-inline-start: 4px solid currentColor;
+    font-size: 0.95rem;
+}
+
+.info {
+    background: #edf5ff;
+    color: #123b68;
+}
+.success {
+    background: #edf7ed;
+    color: #205522;
+}
+.warning {
+    background: #fff7df;
+    color: #654600;
+}
+.error {
+    background: #fff0f0;
+    color: #8e1616;
+}
+.icon {
+    font-weight: 700;
+    flex-shrink: 0;
+}
+.content {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+.title {
+    display: block;
+    margin-bottom: 0.2rem;
+}
+.message {
+    white-space: pre-line;
+}
+.message > :first-child {
+    margin-top: 0;
+}
+.message > :last-child {
+    margin-bottom: 0;
+}
+.message pre {
+    overflow-x: auto;
+}
+.message a {
+    color: inherit;
+    font-weight: 600;
+    text-decoration: underline;
+}
+.dismiss {
+    margin-inline-start: auto;
+    flex-shrink: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    min-height: 2rem;
+    min-width: 2rem;
+    font-size: 1.4rem;
+}
+.dismiss:focus-visible,
+.message a:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+}
+.srOnly {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+    .banner {
+        padding: 0.65rem 0.75rem;
+    }
+}
+
+@media (forced-colors: active) {
+    .banner {
+        background: Canvas;
+        color: CanvasText;
+    }
+}

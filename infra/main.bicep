@@ -69,6 +69,15 @@ param environmentName string
 })
 param location string
 
+// Optional public service banners, read from a dedicated private blob container.
+param notificationsEnabled bool = false
+param notificationsStorageAccountUrl string = ''
+param notificationsStorageContainer string = 'notifications'
+param notificationsStorageBlob string = 'notifications.json'
+param notificationsCacheSeconds int = 30
+param notificationsPollSeconds int = 60
+param notificationsTimeoutSeconds int = 3
+
 param appServicePlanName string = '' // Set in main.parameters.json
 param backendServiceName string = '' // Set in main.parameters.json
 param resourceGroupName string = '' // Set in main.parameters.json
@@ -480,6 +489,13 @@ var adlsStorageAccountNameResolved = useExistingAdlsStorage ? existingAdlsStorag
 var cloudIngestionStorageAccount = useCloudIngestionAcls ? adlsStorageAccountNameResolved : storage.outputs.name
 
 var appEnvVariables = {
+  NOTIFICATIONS_ENABLED: string(notificationsEnabled)
+  NOTIFICATIONS_STORAGE_ACCOUNT_URL: notificationsStorageAccountUrl
+  NOTIFICATIONS_STORAGE_CONTAINER: notificationsStorageContainer
+  NOTIFICATIONS_STORAGE_BLOB: notificationsStorageBlob
+  NOTIFICATIONS_CACHE_SECONDS: string(notificationsCacheSeconds)
+  NOTIFICATIONS_POLL_SECONDS: string(notificationsPollSeconds)
+  NOTIFICATIONS_TIMEOUT_SECONDS: string(notificationsTimeoutSeconds)
   AZURE_STORAGE_ACCOUNT: storage.outputs.name
   AZURE_STORAGE_CONTAINER: storageContainerName
   AZURE_STORAGE_RESOURCE_GROUP: storageResourceGroupNameActual

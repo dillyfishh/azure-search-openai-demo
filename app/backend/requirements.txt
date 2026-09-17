@@ -324,7 +324,9 @@ psutil==7.1.2
 pycparser==2.22
     # via cffi
 pydantic==2.13.4
-    # via openai
+    # via
+    #   -r requirements.in
+    #   openai
 pydantic-core==2.46.4
     # via pydantic
 pygments==2.20.0
@@ -398,6 +400,8 @@ typing-extensions==4.15.0
     #   typing-inspection
 typing-inspection==0.4.2
     # via pydantic
+tzdata==2026.4
+    # via -r requirements.in
 urllib3==2.7.0
     # via requests
 uvicorn==0.30.6

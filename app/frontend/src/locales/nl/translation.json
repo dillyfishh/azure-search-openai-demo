@@ -158,5 +158,13 @@
     },
     "overallSettings": "Algemene instellingen",
     "searchSettings": "Zoekinstellingen",
-    "llmSettings": "LLM-instellingen"
+    "llmSettings": "LLM-instellingen",
+    "notifications": {
+        "region": "Servicemeldingen",
+        "info": "Informatie",
+        "success": "Geslaagd",
+        "warning": "Waarschuwing",
+        "error": "Fout",
+        "dismiss": "Melding sluiten: {{title}}"
+    }
 }

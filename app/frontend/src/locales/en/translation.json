@@ -158,5 +158,13 @@
     },
     "overallSettings": "Overall settings",
     "searchSettings": "Search settings",
-    "llmSettings": "LLM settings"
+    "llmSettings": "LLM settings",
+    "notifications": {
+        "region": "Service notifications",
+        "info": "Information",
+        "success": "Success",
+        "warning": "Warning",
+        "error": "Error",
+        "dismiss": "Dismiss notification: {{title}}"
+    }
 }

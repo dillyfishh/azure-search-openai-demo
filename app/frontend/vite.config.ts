@@ -73,6 +73,7 @@ export default defineConfig(() => {
                 "/chat": backendUrl,
                 "/speech": backendUrl,
                 "/config": backendUrl,
+                "/notifications": backendUrl,
                 "/upload": backendUrl,
                 "/delete_uploaded": backendUrl,
                 "/list_uploaded": backendUrl,

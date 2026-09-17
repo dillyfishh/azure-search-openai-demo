@@ -158,5 +158,13 @@
     },
     "overallSettings": "Overordnede indstillinger",
     "searchSettings": "Søgeindstillinger",
-    "llmSettings": "LLM-indstillinger"
+    "llmSettings": "LLM-indstillinger",
+    "notifications": {
+        "region": "Servicemeddelelser",
+        "info": "Information",
+        "success": "Succes",
+        "warning": "Advarsel",
+        "error": "Fejl",
+        "dismiss": "Luk meddelelse: {{title}}"
+    }
 }

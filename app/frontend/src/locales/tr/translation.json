@@ -158,5 +158,13 @@
     },
     "overallSettings": "Genel ayarlar",
     "searchSettings": "Arama ayarları",
-    "llmSettings": "LLM ayarları"
+    "llmSettings": "LLM ayarları",
+    "notifications": {
+        "region": "Hizmet bildirimleri",
+        "info": "Bilgi",
+        "success": "Başarılı",
+        "warning": "Uyarı",
+        "error": "Hata",
+        "dismiss": "Bildirimi kapat: {{title}}"
+    }
 }
